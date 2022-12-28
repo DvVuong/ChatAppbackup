@@ -10,6 +10,10 @@ import FBSDKLoginKit
 
 protocol SignInPresenterDelegate: NSObject {
     func showUserRegiter(_ email: String, password: String)
+    func didLoginZalo(_ user: User?)
+    func didLoginFacebook(_ user: User?)
+    func didLoginGoogle(_ user: User?)
+    func didValidateSocialMediaAccount(_ user: User?, bool: Bool)
 }
 
 class SignInPresenter {
@@ -46,33 +50,33 @@ class SignInPresenter {
     
     
     //MARK: -Login
-    func loginZalo(_ vc: SiginViewController, completed:@escaping (User?) -> Void) {
+    func loginZalo(_ vc: SiginViewController) {
         ZaloService.shared.login(vc) {[weak self] email, name, id, url in
             let user = User(name: name, id: id, picture: url, email: email, password: "", isActive: false)
             FirebaseService.share.registerSocialMedia(name, email: email, id: id, picture: url)
             self?.changeStateUser(user)
-            completed(user)
+            self?.view?.didLoginZalo(user)
         }
     }
     
-    func loginWithGoogle(_ vc: SiginViewController, completed:@escaping (User) -> Void) {
+    func loginWithGoogle(_ vc: SiginViewController) {
         GoogleService.shared.login(vc) {[weak self] user in
             FirebaseService.share.registerSocialMedia(user.name, email: user.email, id: user.id, picture: user.picture)
             self?.changeStateUser(user)
-            completed(user)
+            self?.view?.didLoginGoogle(user)
         }
     }
     
-    func loginWithFacebook(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?, completed:@escaping(User) -> Void) {
+    func loginWithFacebook(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
         FaceBookService.shared.login(loginButton, didCompleteWith: result, error: error) {[weak self] result, user in
             self?.registerSocialMediaAccount(result)
             self?.changeStateUser(user)
-            completed(user)
+            self?.view?.didLoginFacebook(user)
         }
     }
     
     //MARK: -Validate
-    func validateSocialMediaAccount(_ email: String, completion: (_ socialMediaUser : User?, Bool) -> Void) {
+    func validateSocialMediaAccount(_ email: String) {
         var currentUser: User?
         var isvalid: Bool = false
         users.forEach { user in
@@ -81,7 +85,7 @@ class SignInPresenter {
                 isvalid = true
             }
         }
-        completion(currentUser, isvalid)
+        view?.didValidateSocialMediaAccount(currentUser, bool: isvalid)
     }
     
     func validateEmailPassword(_ email: String, _ password: String, completion: (_ currentUser: User?, Bool) -> Void) {

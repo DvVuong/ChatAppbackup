@@ -7,7 +7,7 @@
 
 import UIKit
 
-class DetailViewViewController: UIViewController {
+final class DetailViewViewController: UIViewController {
     static func instance(_ data: User, currentUser: User) -> DetailViewViewController {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DetailScreen") as! DetailViewViewController
         vc.presenter = DetailPresenter(with: vc, data: data, currentUser: currentUser)
@@ -15,7 +15,7 @@ class DetailViewViewController: UIViewController {
     }
     
     @IBOutlet private weak var image: UIImageView!
-    @IBOutlet private weak var tfMessage: UITextField!
+    @IBOutlet private weak var tvMessage: UITextView!
     @IBOutlet private weak var btSendMessage: UIButton!
     @IBOutlet private weak var convertiontable: UITableView!
     @IBOutlet private weak var goBack: UIButton!
@@ -23,9 +23,12 @@ class DetailViewViewController: UIViewController {
     @IBOutlet private weak var lbState: UILabel!
     @IBOutlet private weak var lbNameUser: UILabel!
     @IBOutlet private weak var imgStateUser: CustomImage!
-    
+    @IBOutlet private weak var heightTextViewContrains: NSLayoutConstraint!
     @IBOutlet private weak var bottomTfMessageContrains: NSLayoutConstraint!
+    @IBOutlet private weak var bottomImageContrains: NSLayoutConstraint!
+    @IBOutlet private weak var bottomSenImageContrains: NSLayoutConstraint!
     
+    @IBOutlet weak var bottomTableView: NSLayoutConstraint!
     private var imgPicker = UIImagePickerController()
     private var presenter: DetailPresenter!
     override func viewDidLoad() {
@@ -63,19 +66,7 @@ class DetailViewViewController: UIViewController {
     }
     
     private func showStateReciverUser() {
-        presenter.fetchStateUser {[weak self] user, image  in
-            guard let image = image else {return}
-            self?.imgStateUser.tintColor = .systemGray
-            guard let user = user else {return}
-            user.forEach { user in
-                self?.lbNameUser.text = user.name
-                DispatchQueue.main.async {
-                    self?.imgUser.image = image
-                }
-                self?.lbState.text = user.isActive ? "Active Now" : "Not active"
-                self?.imgStateUser.tintColor = user.isActive ? .green : .systemGray
-            }
-        }
+        presenter.fetchStateUser()
     }
    
     private func setupGoBackButton() {
@@ -103,11 +94,10 @@ class DetailViewViewController: UIViewController {
     }
     
     private func setupMessageTextField() {
-        tfMessage.attributedPlaceholder = NSAttributedString(string: "Aa", attributes: [.foregroundColor:UIColor.white])
-        tfMessage.layer.cornerRadius = 6
-        tfMessage.delegate = self
-        tfMessage.layer.masksToBounds = true
-        tfMessage.addTarget(self, action: #selector(handleChangeButton(_:)), for: .editingChanged)
+        tvMessage.delegate = self
+        tvMessage.layer.cornerRadius = 6
+        tvMessage.layer.masksToBounds = true
+        tvMessage.isScrollEnabled = true
     }
     
     private func setupImage() {
@@ -122,15 +112,17 @@ class DetailViewViewController: UIViewController {
     }
     
     private func sendMessage() {
-        guard let message = tfMessage.text else {return}
+        guard let message = tvMessage.text else {return}
         if message.isEmpty {
             presenter.sendLikeSymbols()
             view.endEditing(true)
             return
         }
         presenter.sendMessage(with: message)
-        tfMessage.text = ""
+        tvMessage.text = ""
         btSendMessage.setImage(UIImage(systemName: "hand.thumbsup.fill"), for: .normal)
+        heightTextViewContrains.constant = 33
+        view.layoutIfNeeded()
         view.endEditing(true)
     }
     
@@ -143,21 +135,7 @@ class DetailViewViewController: UIViewController {
     }
     
     //MARK: -Acction
-    
-    @objc private func handleChangeButton(_ textField: UITextField) {
-        if textField === tfMessage {
-            guard let message = tfMessage.text else {return}
-            if message.isEmpty {
-                btSendMessage.setImage(UIImage(systemName: "hand.thumbsup.fill"), for: .normal)
-                return
-            }
-            
-            btSendMessage.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
-        }
         
-        
-    }
-    
     @objc private func didTapSend(_ sender: UIButton) {
         self.sendMessage()
     }
@@ -248,6 +226,20 @@ extension DetailViewViewController: UITextFieldDelegate {
 }
 
 extension DetailViewViewController: DetailPresenterViewDelegate {
+    func didFetchStateUser(_ user: [User]?, image: UIImage?) {
+        guard let image = image else {return}
+        imgStateUser.tintColor = .systemGray
+        guard let user = user else {return}
+        user.forEach { user in
+            lbNameUser.text = user.name
+            DispatchQueue.main.async {
+                self.imgUser.image = image
+            }
+            self.lbState.text = user.isActive ? "Active Now" : "Not active"
+            self.imgStateUser.tintColor = user.isActive ? .green : .systemGray
+        }
+    }
+    
     func showMessage() {
         self.convertiontable.reloadData()
         self.scrollToBottom()
@@ -258,15 +250,42 @@ extension DetailViewViewController {
     @objc func keyboardWillShow(_ sender: NSNotification) {
         let keyboardframe = (sender.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]! as! NSValue).cgRectValue.height
         self.bottomTfMessageContrains.constant = keyboardframe + 10
+        self.bottomImageContrains.constant = keyboardframe + 10
+//        self.bottomSenImageContrains.constant = keyboardframe + 10
         self.scrollToBottom()
         self.view.layoutIfNeeded()
     }
     
     
     @objc func keyboardWillHide(_ sender: NSNotification) {
-        self.bottomTfMessageContrains.constant = 30
+        self.bottomTfMessageContrains.constant = 20
+        self.bottomImageContrains.constant = 20
+        self.bottomSenImageContrains.constant = 20
         self.scrollToBottom()
         self.view.layoutIfNeeded()
     }
 }
 
+extension DetailViewViewController: UITextViewDelegate {
+    
+    func textViewDidChange(_ textView: UITextView) {
+        let size = CGSize(width: view.frame.width, height: .infinity)
+
+        let esimatedSize = textView.sizeThatFits(size)
+
+        guard let message = tvMessage.text else {return }
+        bottomTableView.constant = esimatedSize.height + 10
+        if tvMessage.contentSize.height < 120 {
+            heightTextViewContrains.constant = esimatedSize.height
+        } else {
+            heightTextViewContrains.constant = 100
+        }
+        if message.isEmpty {
+            btSendMessage.setImage(UIImage(systemName: "hand.thumbsup.fill"), for: .normal)
+
+        } else {
+            btSendMessage.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+        }
+        self.view.layoutIfNeeded()
+    }
+}

@@ -25,6 +25,8 @@
 		9D41EF142947120D00768CBA /* ResgiterPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D41EF132947120D00768CBA /* ResgiterPresenter.swift */; };
 		9D7AD6BA2942CAFE00162976 /* ListCellPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7AD6B92942CAFD00162976 /* ListCellPresenter.swift */; };
 		9D7AD6BD294342F300162976 /* CustomLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7AD6BC294342F300162976 /* CustomLabel.swift */; };
+		9D8B0CF9295BEAC200A348FE /* CreateStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B0CF8295BEAC200A348FE /* CreateStatusViewController.swift */; };
+		9D8B0CFB295BEC3C00A348FE /* CreateStatusPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B0CFA295BEC3C00A348FE /* CreateStatusPresenter.swift */; };
 		9D8C67E3294C032B00224FF5 /* CustomStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8C67E2294C032B00224FF5 /* CustomStackView.swift */; };
 		9D9134A7294186B20065578D /* DetailPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9134A6294186B20065578D /* DetailPresenter.swift */; };
 		9DA56DA6294FFBE800162077 /* CustomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DA56DA5294FFBE800162077 /* CustomView.swift */; };
@@ -44,7 +46,6 @@
 		9DD70BA3295A854D0054448E /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD70BA2295A854D0054448E /* Utils.swift */; };
 		9DD70BA5295A85DC0054448E /* Asset.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9DD70BA4295A85DC0054448E /* Asset.xcassets */; };
 		9DD70BA7295AA5170054448E /* ListAllUserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD70BA6295AA5170054448E /* ListAllUserTableCell.swift */; };
-		9DD70BAA295AECBB0054448E /* UpStoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD70BA9295AECBB0054448E /* UpStoryCell.swift */; };
 		E20577142940EE0900654B8A /* ListUserPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20577132940EE0900654B8A /* ListUserPresenter.swift */; };
 		E239D0C42953467C001982E5 /* MessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E239D0C22953467C001982E5 /* MessageCell.swift */; };
 		E239D0C52953467C001982E5 /* MessageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = E239D0C32953467C001982E5 /* MessageCell.xib */; };
@@ -77,6 +78,8 @@
 		9D41EF132947120D00768CBA /* ResgiterPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResgiterPresenter.swift; sourceTree = "<group>"; };
 		9D7AD6B92942CAFD00162976 /* ListCellPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListCellPresenter.swift; sourceTree = "<group>"; };
 		9D7AD6BC294342F300162976 /* CustomLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomLabel.swift; sourceTree = "<group>"; };
+		9D8B0CF8295BEAC200A348FE /* CreateStatusViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatusViewController.swift; sourceTree = "<group>"; };
+		9D8B0CFA295BEC3C00A348FE /* CreateStatusPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatusPresenter.swift; sourceTree = "<group>"; };
 		9D8C67E2294C032B00224FF5 /* CustomStackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStackView.swift; sourceTree = "<group>"; };
 		9D9134A6294186B20065578D /* DetailPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailPresenter.swift; sourceTree = "<group>"; };
 		9DA56DA5294FFBE800162077 /* CustomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomView.swift; sourceTree = "<group>"; };
@@ -96,7 +99,6 @@
 		9DD70BA2295A854D0054448E /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		9DD70BA4295A85DC0054448E /* Asset.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Asset.xcassets; sourceTree = "<group>"; };
 		9DD70BA6295AA5170054448E /* ListAllUserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListAllUserTableCell.swift; sourceTree = "<group>"; };
-		9DD70BA9295AECBB0054448E /* UpStoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpStoryCell.swift; sourceTree = "<group>"; };
 		E20577132940EE0900654B8A /* ListUserPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListUserPresenter.swift; sourceTree = "<group>"; };
 		E239D0C22953467C001982E5 /* MessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCell.swift; sourceTree = "<group>"; };
 		E239D0C32953467C001982E5 /* MessageCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MessageCell.xib; sourceTree = "<group>"; };
@@ -195,11 +197,12 @@
 				9DD70B94295A84510054448E /* FacebookService */,
 				9DD70B97295A848C0054448E /* GoogleService */,
 				9DD70B9A295A84C00054448E /* ZaloService */,
-				9D13C18C294ADDCE00FCC40A /* SettingViewContronller */,
 				9D41EF102947087E00768CBA /* RegisterScreen */,
 				9D91349F294176C90065578D /* SiginScreen */,
 				9D9134A12941772F0065578D /* ListUserViewContronller */,
+				9D13C18C294ADDCE00FCC40A /* SettingViewContronller */,
 				9D9134A5294186810065578D /* DetailViewController */,
+				9D8B0CF7295BEA6E00A348FE /* CreateSatusScreen */,
 				9D8C67E4294C060F00224FF5 /* CustonView */,
 				9D155BB22940538F003C802E /* Info.plist */,
 				9DD70BA4295A85DC0054448E /* Asset.xcassets */,
@@ -227,6 +230,15 @@
 				9D7AD6BC294342F300162976 /* CustomLabel.swift */,
 			);
 			path = CustomLable;
+			sourceTree = "<group>";
+		};
+		9D8B0CF7295BEA6E00A348FE /* CreateSatusScreen */ = {
+			isa = PBXGroup;
+			children = (
+				9D8B0CF8295BEAC200A348FE /* CreateStatusViewController.swift */,
+				9D8B0CFA295BEC3C00A348FE /* CreateStatusPresenter.swift */,
+			);
+			path = CreateSatusScreen;
 			sourceTree = "<group>";
 		};
 		9D8BDCAE2953F23B0081A763 /* ConvertionCell */ = {
@@ -405,7 +417,6 @@
 			isa = PBXGroup;
 			children = (
 				9D4199532951BBF8008092BF /* ListUserActiveCollectionCell.swift */,
-				9DD70BA9295AECBB0054448E /* UpStoryCell.swift */,
 			);
 			path = CollectionView;
 			sourceTree = "<group>";
@@ -538,13 +549,14 @@
 				9D13C1A3294B1FA700FCC40A /* CustomImage.swift in Sources */,
 				9D155BA92940538D003C802E /* SiginViewController.swift in Sources */,
 				9D13C19D294B19A600FCC40A /* CustomTextField.swift in Sources */,
-				9DD70BAA295AECBB0054448E /* UpStoryCell.swift in Sources */,
 				9DD70B8C295A83910054448E /* Enum.swift in Sources */,
 				9D0BE35429409A8300AFC3F7 /* ListUserViewController.swift in Sources */,
 				9DD70BA3295A854D0054448E /* Utils.swift in Sources */,
 				9D155BA52940538D003C802E /* AppDelegate.swift in Sources */,
 				9DD70B90295A83F00054448E /* User.swift in Sources */,
+				9D8B0CFB295BEC3C00A348FE /* CreateStatusPresenter.swift in Sources */,
 				E239D0C829539101001982E5 /* ReciverUserCell.swift in Sources */,
+				9D8B0CF9295BEAC200A348FE /* CreateStatusViewController.swift in Sources */,
 				9D13C18E294ADDEF00FCC40A /* SettingViewController.swift in Sources */,
 				E20577142940EE0900654B8A /* ListUserPresenter.swift in Sources */,
 				9D8C67E3294C032B00224FF5 /* CustomStackView.swift in Sources */,

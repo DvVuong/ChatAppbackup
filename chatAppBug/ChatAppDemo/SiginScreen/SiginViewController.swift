@@ -116,23 +116,41 @@ class SiginViewController: UIViewController {
     }
     
     @IBAction private func didTapLoginWithGoogle(_ sender: Any) {
-        presenter.loginWithGoogle(self) {[weak self] user in
-            let vc = ListUserViewController.instance(user)
-            self?.navigationController?.pushViewController(vc, animated: true)
-        }
+        presenter.loginWithGoogle(self)
     }
     
     @IBAction private func loginWithZalo(_ sender: Any) {
-        presenter.loginZalo(self) {[weak self] user in
-            guard let user = user else {return}
-            let vc = ListUserViewController.instance(user)
-            self?.navigationController?.pushViewController(vc, animated: true)
-        }
+        presenter.loginZalo(self)
     }
     
 }
 
 extension SiginViewController: SignInPresenterDelegate {
+    func didValidateSocialMediaAccount(_ user: User?, bool: Bool) {
+        guard let user = user else {return}
+        if bool {
+            let vc = ListUserViewController.instance(user)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    func didLoginZalo(_ user: User?) {
+        guard let user = user else {return}
+        let vc = ListUserViewController.instance(user)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func didLoginFacebook(_ user: User?) {
+        guard let user = user else {return}
+        self.presenter.validateSocialMediaAccount(user.email)
+    }
+    
+    func didLoginGoogle(_ user: User?) {
+        guard let user = user else {return}
+        let vc = ListUserViewController.instance(user)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
     func showUserRegiter(_ email: String, password: String) {
         self.tfEmail.text = email
         self.tfPassword.text = password
@@ -148,20 +166,12 @@ extension SiginViewController: RegisterViewcontrollerDelegate {
 }
 
 extension SiginViewController: LoginButtonDelegate {
-    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
-        presenter.loginWithFacebook(loginButton, didCompleteWith: result, error: error) {[weak self] user in
-            self?.presenter.validateSocialMediaAccount(user.email, completion: { socialMediaUser, bool in
-                if bool {
-                    guard let socialMediaUser = socialMediaUser else {return}
-                    let vc = ListUserViewController.instance(socialMediaUser)
-                    self?.navigationController?.pushViewController(vc, animated: true)
-                }
-            })
-        }
-    }
-
     func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
         print("LogOut")
     }
+    
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        presenter.loginWithFacebook(loginButton, didCompleteWith: result, error: error)
+        }
 }
 

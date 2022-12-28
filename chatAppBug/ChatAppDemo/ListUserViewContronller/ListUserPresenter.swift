@@ -11,6 +11,9 @@ protocol ListUserPresenterDelegate: NSObject {
     func showSearchUser()
     func showStateMassage()
     func deleteUser(at index: Int)
+    func didFetchUser()
+    func didFetchMessageForUser()
+    func didGetImageForCurrentUser(_ image: UIImage)
 }
 
 class ListUserPresenter {
@@ -21,6 +24,7 @@ class ListUserPresenter {
     private var finalUser = [User]()
     private var activeUsers = [User]()
     private var currentUser: User?
+    private var currenUsers = [User]()
     private var message = [Message]()
     private var allMessages = [String: Message]()
     private var messageByUser = [String: Message]()
@@ -29,35 +33,39 @@ class ListUserPresenter {
     init(with view: ListUserPresenterDelegate, data: User) {
         self.view = view
         self.currentUser = data
+        self.activeUsers.insert(data, at: 0)
     }
     
     
     //MARK: - FetchUser
-    func fetchUser(_ completed: @escaping() -> Void) {
-        
+    func fetchUser() {
         guard let currentID = currentUser?.id else { return }
-        db.collection("user").addSnapshotListener { (querySnapshot, error) in
+        db.collection("user").addSnapshotListener {[weak self] (querySnapshot, error) in
             if error != nil {return}
             guard let snapshot = querySnapshot else { return }
-            self.reciverUser.removeAll()
-            self.activeUsers.removeAll()
+            self?.reciverUser.removeAll()
+            self?.activeUsers.removeAll()
             snapshot.documents.forEach { doc in
                 let value = User(dict: doc.data())
                 if value.id != currentID {
-                    self.reciverUser.append(value)
-                    self.finalUser = self.reciverUser
+                    self?.reciverUser.append(value)
+                    self?.finalUser = self?.reciverUser ?? []
                 }
                 if value.id != currentID && value.isActive == true {
-                    self.activeUsers.append(value)
+                    self?.activeUsers.append(value)
+                }
+                if value.id == currentID {
+                    self?.activeUsers.insert(value, at: 0)
                 }
                 
             }
-            completed()
+            self?.view?.didFetchUser()
+            self?.fetchMessageForUser()
         }
     }
     
     //MARK: - FetchMessage
-    func fetchMessageForUser( completed: @escaping () -> Void) {
+    func fetchMessageForUser() {
         self.message.removeAll()
         guard let currentUser = currentUser else {return}
         reciverUser.forEach { user in
@@ -70,8 +78,8 @@ class ListUserPresenter {
                             return $0.time > $1.time
                         } ?? []
                     }
-                    completed()
                 }
+                self?.view?.didFetchMessageForUser()
             }
         }
     }
@@ -143,10 +151,10 @@ class ListUserPresenter {
         return finalUser[index]
     }
     
-    func getImageForCurrentUser(_ completed: @escaping(UIImage) -> Void) {
+    func getImageForCurrentUser() {
         guard let currentuser = getcurrentUser() else { return }
-        ImageService.share.fetchImage(with: currentuser.picture) {  image in
-            completed(image)
+        ImageService.share.fetchImage(with: currentuser.picture) {[weak self]  image in
+            self?.view?.didGetImageForCurrentUser(image)
         }
     }
     
@@ -154,6 +162,12 @@ class ListUserPresenter {
         self.finalUser.remove(at: index)
         completion()
     }
+//    func getNumberOfItemForCurrentUser() -> Int {
+//        return currenUsers.count
+//    }
+//    func getIndexForCurrentUser(_ index: Int) -> User? {
+//        return currenUsers[index]
+//    }
     
     
 }

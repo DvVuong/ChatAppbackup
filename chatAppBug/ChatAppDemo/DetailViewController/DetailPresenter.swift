@@ -9,6 +9,7 @@ import Firebase
 
 protocol DetailPresenterViewDelegate: NSObject {
     func showMessage()
+    func didFetchStateUser(_ user: [User]?, image: UIImage?)
 }
 
 class DetailPresenter {
@@ -98,7 +99,7 @@ class DetailPresenter {
     }
     
     //MARK: -Fetch StateMessage
-    func fetchStateUser(_ completed:@escaping ([User]?, UIImage?) -> Void) {
+    func fetchStateUser() {
         var image: UIImage? = nil
         self.stateUser.removeAll()
         guard let reciverUser = receiverUser else  {return}
@@ -112,7 +113,7 @@ class DetailPresenter {
                     }
                 }
             }
-            completed(self?.stateUser, image)
+            self?.view?.didFetchStateUser(self?.stateUser, image: image)
         }
     }
 }

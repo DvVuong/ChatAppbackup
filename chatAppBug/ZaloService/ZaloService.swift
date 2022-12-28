@@ -26,7 +26,7 @@ class ZaloService {
                     let pictureData: [String: Any] = data["picture"] as? [String: Any] ?? [:]
                     let pictureUrl: [String: Any] = pictureData["data"] as? [String: Any] ?? [:]
                     let url = pictureUrl["url"] as? String ?? ""
-                    
+                    print("vuongdv", "data", data)
                     completed(email, name, id, url)
                 }
             }

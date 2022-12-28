@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ListUserViewController: UIViewController {
+final class ListUserViewController: UIViewController {
     static func instance(_ currentUser: User) -> ListUserViewController {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "listUserScreen") as! ListUserViewController
         vc.presenter = ListUserPresenter(with: vc, data: currentUser)
@@ -67,14 +67,8 @@ class ListUserViewController: UIViewController {
     }
     
     private func setupData() {
-        self.presenter.fetchUser {
-            self.presenter.fetchMessageForUser {
-                self.messageTable.reloadData()
-                self.listAllUser.reloadData()
-            }
-            self.listUserActive.reloadData()
-           
-        }
+        presenter.fetchUser()
+        presenter.getImageForCurrentUser()
     }
     
     private func setupBtCacncelSearchUser() {
@@ -110,11 +104,6 @@ class ListUserViewController: UIViewController {
         avatar.layer.borderWidth = 1
         avatar.layer.borderColor = UIColor.black.cgColor
         avatar.contentMode = .scaleToFill
-        presenter.getImageForCurrentUser {[weak self] image in
-            DispatchQueue.main.async {
-                self?.avatar.image = image
-            }
-        }
     }
     
     private func setupLbNameUser() {
@@ -252,49 +241,63 @@ extension ListUserViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: CollectionView
 
 extension ListUserViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+   
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+
         return presenter.getNumberOfActiveUser()
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if indexPath.item == 0 {
-            let cell = listUserActive.dequeueReusableCell(withReuseIdentifier: "upstoryCell", for: indexPath) as! UpStoryCell
 
+            let currentUser = presenter.getcurrentUser()
+            let cell = listUserActive.dequeueReusableCell(withReuseIdentifier: "listActiveUserCell", for: indexPath) as! ListUserActiveCollectionCell
+            cell.updateUI(presenter.getIndexOfActiveUser(indexPath.item), text: searchUser.text ?? "", currentuser: currentUser)
             return cell
-        }
-        else {
-            let cell = listUserActive.dequeueReusableCell(withReuseIdentifier: "listUserCell", for: indexPath) as! ListUserActiveCollectionCell
-            cell.updateUI(presenter.getIndexOfActiveUser(indexPath.item), text: searchUser.text ?? "" )
-            
-            return cell
-        }
-        
+     
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let user = presenter.getIndexOfActiveUser(indexPath.item) else {return}
-        guard let currentUser = presenter.getcurrentUser() else {return}
-        let vc = DetailViewViewController.instance(user, currentUser: currentUser)
-        navigationController?.pushViewController(vc, animated: true)
+        if indexPath.item == 0 {
+            let user = presenter.getcurrentUser()
+            let vc = CreateStatusViewController.instance(user)
+            present(vc, animated: true)
+            return
+        }
+        else {
+            guard let user = presenter.getIndexOfActiveUser(indexPath.item) else {return}
+            guard let currentUser = presenter.getcurrentUser() else {return}
+            let vc = DetailViewViewController.instance(user, currentUser: currentUser)
+            navigationController?.pushViewController(vc, animated: true)
+        }
+       
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 80, height: 80)
-    }
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 20
+        return CGSize(width: 100, height: 100)
     }
     
 }
 
 
-
-
-
 extension ListUserViewController: ListUserPresenterDelegate {
-    func showSearchUser() {
-        self.messageTable.reloadData()
+    func didFetchUser() {
         self.listUserActive.reloadData()
+        self.listAllUser.reloadData()
+    }
+    
+    func didFetchMessageForUser() {
+        self.messageTable.reloadData()
+    }
+    
+    func didGetImageForCurrentUser(_ image: UIImage) {
+        DispatchQueue.main.async {
+            self.avatar.image = image
+        }
+    }
+    
+    func showSearchUser() {
         self.listAllUser.reloadData()
     }
     func deleteUser(at index: Int) { 
