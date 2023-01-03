@@ -251,7 +251,7 @@ extension DetailViewViewController {
         let keyboardframe = (sender.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]! as! NSValue).cgRectValue.height
         self.bottomTfMessageContrains.constant = keyboardframe + 10
         self.bottomImageContrains.constant = keyboardframe + 10
-//        self.bottomSenImageContrains.constant = keyboardframe + 10
+        self.bottomSenImageContrains.constant = keyboardframe + 10
         self.scrollToBottom()
         self.view.layoutIfNeeded()
     }
@@ -274,7 +274,6 @@ extension DetailViewViewController: UITextViewDelegate {
         let esimatedSize = textView.sizeThatFits(size)
 
         guard let message = tvMessage.text else {return }
-        bottomTableView.constant = esimatedSize.height + 10
         if tvMessage.contentSize.height < 120 {
             heightTextViewContrains.constant = esimatedSize.height
         } else {
@@ -286,6 +285,7 @@ extension DetailViewViewController: UITextViewDelegate {
         } else {
             btSendMessage.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         }
+        self.scrollToBottom()
         self.view.layoutIfNeeded()
     }
 }

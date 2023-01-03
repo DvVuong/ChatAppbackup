@@ -16,6 +16,7 @@ class SiginViewController: UIViewController {
     @IBOutlet private weak var btSigin: UIButton!
     @IBOutlet private weak var btSignup: CustomButton!
     @IBOutlet private weak var btLoginFaceBook: FBLoginButton!
+    
 
     lazy private var presenter = SignInPresenter(with: self)
     
@@ -122,6 +123,13 @@ class SiginViewController: UIViewController {
     @IBAction private func loginWithZalo(_ sender: Any) {
         presenter.loginZalo(self)
     }
+    
+    @IBAction func didTapGotoRxSwift(_ sender: Any) {
+        
+        let vc = DemoRxViewController.instance()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
     
 }
 

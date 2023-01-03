@@ -54,9 +54,9 @@ class ListUserPresenter {
                 if value.id != currentID && value.isActive == true {
                     self?.activeUsers.append(value)
                 }
-                if value.id == currentID {
-                    self?.activeUsers.insert(value, at: 0)
-                }
+//                if value.id == currentID {
+//                    self?.activeUsers.insert(value, at: 0)
+//                }
                 
             }
             self?.view?.didFetchUser()

@@ -259,18 +259,18 @@ extension ListUserViewController: UICollectionViewDelegate, UICollectionViewData
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.item == 0 {
-            let user = presenter.getcurrentUser()
-            let vc = CreateStatusViewController.instance(user)
-            present(vc, animated: true)
-            return
-        }
-        else {
+//        if indexPath.item == 0 {
+//            let user = presenter.getcurrentUser()
+//            let vc = CreateStatusViewController.instance(user)
+//            present(vc, animated: true)
+//            return
+//        }
+//        else {
             guard let user = presenter.getIndexOfActiveUser(indexPath.item) else {return}
             guard let currentUser = presenter.getcurrentUser() else {return}
             let vc = DetailViewViewController.instance(user, currentUser: currentUser)
             navigationController?.pushViewController(vc, animated: true)
-        }
+//        }
        
     }
     

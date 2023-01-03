@@ -23,6 +23,9 @@
 		9D155BBF294082CF003C802E /* SignInPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D155BBE294082CF003C802E /* SignInPresenter.swift */; };
 		9D4199542951BBF8008092BF /* ListUserActiveCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4199532951BBF8008092BF /* ListUserActiveCollectionCell.swift */; };
 		9D41EF142947120D00768CBA /* ResgiterPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D41EF132947120D00768CBA /* ResgiterPresenter.swift */; };
+		9D6BD1FD2963CC7800EB332E /* DemoRxViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6BD1FC2963CC7800EB332E /* DemoRxViewController.swift */; };
+		9D6BD1FF2963CE4000EB332E /* RxPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6BD1FE2963CE4000EB332E /* RxPresenter.swift */; };
+		9D6BD201296407D500EB332E /* RxCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6BD200296407D500EB332E /* RxCell.swift */; };
 		9D7AD6BA2942CAFE00162976 /* ListCellPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7AD6B92942CAFD00162976 /* ListCellPresenter.swift */; };
 		9D7AD6BD294342F300162976 /* CustomLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7AD6BC294342F300162976 /* CustomLabel.swift */; };
 		9D8B0CF9295BEAC200A348FE /* CreateStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8B0CF8295BEAC200A348FE /* CreateStatusViewController.swift */; };
@@ -76,6 +79,9 @@
 		9D155BBE294082CF003C802E /* SignInPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPresenter.swift; sourceTree = "<group>"; };
 		9D4199532951BBF8008092BF /* ListUserActiveCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListUserActiveCollectionCell.swift; sourceTree = "<group>"; };
 		9D41EF132947120D00768CBA /* ResgiterPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResgiterPresenter.swift; sourceTree = "<group>"; };
+		9D6BD1FC2963CC7800EB332E /* DemoRxViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRxViewController.swift; sourceTree = "<group>"; };
+		9D6BD1FE2963CE4000EB332E /* RxPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxPresenter.swift; sourceTree = "<group>"; };
+		9D6BD200296407D500EB332E /* RxCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxCell.swift; sourceTree = "<group>"; };
 		9D7AD6B92942CAFD00162976 /* ListCellPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListCellPresenter.swift; sourceTree = "<group>"; };
 		9D7AD6BC294342F300162976 /* CustomLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomLabel.swift; sourceTree = "<group>"; };
 		9D8B0CF8295BEAC200A348FE /* CreateStatusViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateStatusViewController.swift; sourceTree = "<group>"; };
@@ -173,6 +179,7 @@
 		9D155B982940538D003C802E = {
 			isa = PBXGroup;
 			children = (
+				9D6BD1FB2963CC3B00EB332E /* RxSwift */,
 				9D155BA32940538D003C802E /* ChatAppDemo */,
 				9D155BA22940538D003C802E /* Products */,
 				6056874DD0ABCA7DE5F703BB /* Pods */,
@@ -222,6 +229,16 @@
 				9D41EF132947120D00768CBA /* ResgiterPresenter.swift */,
 			);
 			path = RegisterScreen;
+			sourceTree = "<group>";
+		};
+		9D6BD1FB2963CC3B00EB332E /* RxSwift */ = {
+			isa = PBXGroup;
+			children = (
+				9D6BD1FC2963CC7800EB332E /* DemoRxViewController.swift */,
+				9D6BD200296407D500EB332E /* RxCell.swift */,
+				9D6BD1FE2963CE4000EB332E /* RxPresenter.swift */,
+			);
+			path = RxSwift;
 			sourceTree = "<group>";
 		};
 		9D7AD6BB294342CE00162976 /* CustomLable */ = {
@@ -546,6 +563,7 @@
 				9DD70B96295A84720054448E /* FacebookService.swift in Sources */,
 				9DD70B9F295A850E0054448E /* AuthenUtils.swift in Sources */,
 				9D41EF142947120D00768CBA /* ResgiterPresenter.swift in Sources */,
+				9D6BD1FD2963CC7800EB332E /* DemoRxViewController.swift in Sources */,
 				9D13C1A3294B1FA700FCC40A /* CustomImage.swift in Sources */,
 				9D155BA92940538D003C802E /* SiginViewController.swift in Sources */,
 				9D13C19D294B19A600FCC40A /* CustomTextField.swift in Sources */,
@@ -574,9 +592,11 @@
 				9D155BA72940538D003C802E /* SceneDelegate.swift in Sources */,
 				E240D495294126CF0090066D /* DetailViewViewController.swift in Sources */,
 				9D13C1A0294B1EFC00FCC40A /* CustomButton.swift in Sources */,
+				9D6BD201296407D500EB332E /* RxCell.swift in Sources */,
 				9D9134A7294186B20065578D /* DetailPresenter.swift in Sources */,
 				9D4199542951BBF8008092BF /* ListUserActiveCollectionCell.swift in Sources */,
 				9D155BBF294082CF003C802E /* SignInPresenter.swift in Sources */,
+				9D6BD1FF2963CE4000EB332E /* RxPresenter.swift in Sources */,
 				9DA8A1BB2953192C00505104 /* ImgCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

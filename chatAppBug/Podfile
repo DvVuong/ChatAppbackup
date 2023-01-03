@@ -15,6 +15,7 @@ pod 'IQKeyboardManagerSwift'
 pod 'FacebookLogin'
 pod 'ZaloSDK'
 pod 'GoogleSignIn'
-
+pod 'RxSwift'
+pod 'RxCocoa'
 
 end
