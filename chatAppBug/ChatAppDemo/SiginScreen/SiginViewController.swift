@@ -8,6 +8,8 @@
 import UIKit
 import FacebookLogin
 import FBSDKLoginKit
+import RxSwift
+import RxCocoa
 
 class SiginViewController: UIViewController {
     @IBOutlet private weak var tfEmail: CustomTextField!
@@ -18,6 +20,7 @@ class SiginViewController: UIViewController {
     @IBOutlet private weak var btLoginFaceBook: FBLoginButton!
 
     lazy private var presenter = SignInPresenter(with: self)
+    private var disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,6 +54,10 @@ class SiginViewController: UIViewController {
     private func setupUITextField() {
         tfEmail.text = "long@gmail.com"
         tfPassword.text = "123456"
+        // Test RxSwift
+        tfEmail.rx.text.map {$0 ?? ""}.bind(to: presenter.nameTextPublisherSubjetc).disposed(by: disposeBag)
+        tfPassword.rx.text.map {$0 ?? ""}.bind(to: presenter.passwordTextPublisherSubjetc).disposed(by: disposeBag)
+        
 }
     private func setupButtonLoginFaceBook() {
         btLoginFaceBook.setTitle("", for: .normal)

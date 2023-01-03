@@ -7,6 +7,9 @@
 
 import Firebase
 import FBSDKLoginKit
+import RxSwift
+import RxCocoa
+import Foundation
 
 protocol SignInPresenterDelegate: NSObject {
     func showUserRegiter(_ email: String, password: String)
@@ -22,10 +25,17 @@ class SignInPresenter {
     private var users = [User]()
     private var currentUser: User?
     private let db = Firestore.firestore()
+    let nameTextPublisherSubjetc = PublishSubject<String>()
+    let passwordTextPublisherSubjetc = PublishSubject<String>()
+    private var disponeBag = DisposeBag()
     
     //MARK: -Init
     init(with view: SignInPresenterDelegate) {
         self.view = view
+        
+        nameTextPublisherSubjetc.subscribe { name in
+            print("vuongdv",name)
+        }.disposed(by: disponeBag)
     }
 
     //MARK: -Fetch User
