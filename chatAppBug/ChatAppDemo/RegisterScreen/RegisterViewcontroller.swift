@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 protocol RegisterViewcontrollerDelegate {
     func callBackAccountResgiter(_ vc: RegisterViewcontroller, email: String, password: String)
@@ -14,33 +16,35 @@ protocol RegisterViewcontrollerDelegate {
 class RegisterViewcontroller: UIViewController {
     static func instance(_ data: [User]) -> RegisterViewcontroller {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "SignUpScreen") as! RegisterViewcontroller
-        vc.presenter = ResgiterPresenterView(view: vc, user: data)
+        vc.viewModel.user.append(contentsOf: data)
         return vc
     }
     
     @IBOutlet private weak var tfEmail: CustomTextField!
     @IBOutlet private weak var tfPassword: CustomTextField!
-    @IBOutlet private weak var tfConfirmPassword: CustomTextField!
+    @IBOutlet private weak var tfPhoneNumberPassword: CustomTextField!
     @IBOutlet private weak var imgAvtar: CustomImage!
     @IBOutlet private weak var btSignUp: UIButton!
     @IBOutlet private weak var tfName: CustomTextField!
     @IBOutlet private weak var lbErrorEmail: UILabel!
     @IBOutlet private weak var lbPasswordError: UILabel!
-    @IBOutlet private weak var lbConfirmPasswordError: UILabel!
     @IBOutlet private weak var lbNameError: UILabel!
     
     var delegate: RegisterViewcontrollerDelegate?
     private var imgPicker = UIImagePickerController()
-    lazy private var presenter = ResgiterPresenterView(with: self)
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-    }
+    private var disponeBag = DisposeBag()
+    lazy private var viewModel = ResgiterPresenterView()
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        onBind()
     }
     //MARK: Methods
     private func setupUI() {
@@ -50,13 +54,55 @@ class RegisterViewcontroller: UIViewController {
         setupLable()
     }
     
+    private func onBind() {
+        viewModel.nameErrorPublisher.bind(to: lbNameError.rx.text).disposed(by: disponeBag )
+        lbNameError.isHidden = false
+        viewModel.emailErrorPublisher.bind(to: lbErrorEmail.rx.text).disposed(by: disponeBag)
+        lbErrorEmail.isHidden = false
+        viewModel.passwordErrorPublisher.bind(to: lbPasswordError.rx.text).disposed(by: disponeBag)
+        lbPasswordError.isHidden = false
+        
+        // Enable Button Sigin
+        
+        Observable.combineLatest(viewModel.nameErrorPublisher.map({$0 == nil})
+                                 , viewModel.emailErrorPublisher.map({$0 == nil})
+                                 , viewModel.passwordErrorPublisher.map({$0 == nil})).map({$0.0 && $0.1 && $0.2}).subscribe { bool in
+            self.btSignUp.isEnabled = bool
+        }.disposed(by: disponeBag)
+        
+    }
+    
     private func setupLable() {
         lbNameError.isHidden = true
         lbErrorEmail.isHidden = true
         lbPasswordError.isHidden = true
-        lbConfirmPasswordError.isHidden = true
         btSignUp.isEnabled = false
     }
+    
+    private func setupTextFile()  {
+        //Name
+        tfName.rx.controlEvent(.editingChanged).map {textField in
+            return self.tfName.text
+        }.subscribe(onNext: {text in
+            self.viewModel.namePublisherSubject.onNext(text ?? "")
+        }).disposed(by: disponeBag)
+        
+        //Email
+        tfEmail.rx.controlEvent(.editingChanged).map { textField in
+            return self.tfEmail.text
+        }.subscribe(onNext: { text in
+            self.viewModel.emailPublisherSubject.onNext(text ?? "")
+        }).disposed(by: disponeBag)
+        
+        //Password
+        tfPassword.rx.controlEvent(.editingChanged).map{textFiled in
+            return self.tfPassword.text
+        }.subscribe(onNext: {text in
+            self.viewModel.passwordPublisherSubject.onNext(text ?? "")
+        }).disposed(by: disponeBag)
+    }
+    
+    
     
     private func setupImgAvatar() {
         imgAvtar.isUserInteractionEnabled = true
@@ -79,29 +125,10 @@ class RegisterViewcontroller: UIViewController {
         present(aler, animated: true)
     }
 
-    private func setupTextFile() {
-        tfName.addTarget(self, action: #selector(handleTextFiledChanges(_:)), for: .editingChanged)
-        tfEmail.addTarget(self, action: #selector(handleTextFiledChanges(_:)), for: .editingChanged)
-        tfPassword.addTarget(self, action: #selector(handleTextFiledChanges(_:)), for: .editingChanged)
-        tfConfirmPassword.addTarget(self, action: #selector(handleTextFiledChanges(_:)), for: .editingChanged)
-    }
-    
     //MARK: Acction
-    @objc private func handleTextFiledChanges(_ textField: CustomTextField) {
-        if textField === tfName {
-            presenter.vaidateName(textField.text!)
-        }else if textField === tfEmail {
-            presenter.validateEmail(textField.text!)
-        } else if textField === tfPassword {
-            presenter.validatePassword(textField.text!)
-        } else if textField === tfConfirmPassword {
-            presenter.validateConfirmPassword(textField.text!, password: tfPassword.text!)
-        }
-    }
-    
     @objc private func didTapSignUp(_ sender: UIButton) {
         showAlertSuccess("Resigter Success")
-        self.presenter.createAccount(email: self.tfEmail.text!, password: self.tfPassword.text!, name: self.tfName.text!)
+        self.viewModel.createAccount(email: self.tfEmail.text!, password: self.tfPassword.text!, name: self.tfName.text!)
     }
     
     @objc private func handelImage(_ tapges: UITapGestureRecognizer) {
@@ -124,7 +151,6 @@ class RegisterViewcontroller: UIViewController {
         present(alert, animated: true)
     }
     
-    
     @IBAction private func didTapbackLogin(_ sender: Any) {
         navigationController?.popViewController(animated: true)
     }
@@ -136,7 +162,7 @@ extension RegisterViewcontroller: UIImagePickerControllerDelegate, UINavigationC
         let img = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         self.imgAvtar.image = img
         guard let img = img else { return }
-        presenter.getUrlAvatar(img)
+        viewModel.getUrlAvatar(img)
         self.imgPicker.dismiss(animated: true)
     }
     
@@ -144,55 +170,4 @@ extension RegisterViewcontroller: UIImagePickerControllerDelegate, UINavigationC
         self.imgPicker.dismiss(animated: true)
     }
 }
-
-extension RegisterViewcontroller: ResgiterPresenterDelegate {
-    func isEnabledButton(_ result: Bool) {
-        btSignUp.isEnabled = result
-    }
-
-    func validateName(_ result: String?) {
-        if let result = result {
-            lbNameError.text = result
-            lbNameError.isHidden = false
-            
-        } else {
-            lbNameError.text = ""
-            presenter.setNameError(lbNameError.text!)
-        }
-    }
-    
-    func validatePassword(_ result: String?) {
-        if let result = result {
-            lbPasswordError.text = result
-            lbPasswordError.isHidden = false
-            
-        } else {
-            lbPasswordError.text = ""
-            presenter.setPasswordError(lbPasswordError.text!)
-        }
-    }
-    
-    func validateConfirmPassword(_ result: String?) {
-        if let result = result {
-            lbConfirmPasswordError.text = result
-            lbConfirmPasswordError.isHidden = false
-            
-        } else {
-            lbConfirmPasswordError.text = ""
-            presenter.setConfirmPassword(lbConfirmPasswordError.text!)
-        }
-    }
-    
-    func validateEmail(_ result: String?) {
-        if let result = result {
-            lbErrorEmail.text = result
-            lbErrorEmail.isHidden = false
-            
-        } else {
-            lbErrorEmail.text = ""
-            presenter.setEmaiError(lbNameError.text!) 
-        }
-    }
-}
-
 

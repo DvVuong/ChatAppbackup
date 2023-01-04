@@ -151,7 +151,6 @@ class FirebaseService {
                 guard let doc = querydata?.documents else { return }
                 doc.forEach { [weak self] doc in
                     let value = Message(dict: doc.data())
-                    print("vuongdv",value)
                     if value.sendId == revicerUser.id && value.receiverID == senderUser.id {
                         self?.db.collection(self!._message)
                             .document(senderUser.id)
@@ -165,24 +164,29 @@ class FirebaseService {
     
     func createAccount(email: String,  password: String, name: String) {
         let autoKey = self.db.collection(_user).document().documentID
-        var imgUrl = ""
-        let data: [String: Any] = [
-            "email": email,
-            "password": password,
-            "avatar": imgUrl,
-            "id": autoKey,
-            "name": name,
-            "isActive": false
-        ]
-        
         if self.imgUrl.isEmpty {
-            imgUrl = "https://firebasestorage.googleapis.com/v0/b/chatapp-9c3f7.appspot.com/o/Avatar%2FplaceholderAvatar.jpeg?alt=media&token=7d7eab97-abae-4bc9-8ed7-35569c485423"
+           let imgUrl = "https://firebasestorage.googleapis.com/v0/b/chatapp-9c3f7.appspot.com/o/Avatar%2FplaceholderAvatar.jpeg?alt=media&token=7d7eab97-abae-4bc9-8ed7-35569c485423"
+            let data: [String: Any] = [
+                "email": email,
+                "password": password,
+                "picture": imgUrl,
+                "id": autoKey,
+                "name": name,
+                "isActive": false
+            ]
             self.db.collection("user").document(autoKey).setData(data)
-            return
+         
+        } else {
+            let data: [String: Any] = [
+                "email": email,
+                "password": password,
+                "picture": self.imgUrl,
+                "id": autoKey,
+                "name": name,
+                "isActive": false
+            ]
+            self.db.collection(_user).document(autoKey).setData(data)
         }
-        
-        imgUrl = self.imgUrl
-        self.db.collection(_user).document(autoKey).setData(data)
     }
     
     func fetchAvatarUrl(_ image: UIImage) {

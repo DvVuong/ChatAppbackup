@@ -7,6 +7,8 @@
 
 import Firebase
 import FBSDKLoginKit
+import RxCocoa
+import RxSwift
 
 protocol SignInPresenterDelegate: NSObject {
     func showUserRegiter(_ email: String, password: String)
@@ -20,12 +22,33 @@ class SignInPresenter {
     //MARK: -Properties
     private weak var view: SignInPresenterDelegate?
     private var users = [User]()
-    private var currentUser: User?
+    var currentUser: User?
     private let db = Firestore.firestore()
+    let emailtextPublisherSubjetc = PublishSubject<String>()
+    let passwordPublisherSubject = PublishSubject<String>()
+    
+    
+    let emailError = BehaviorSubject<String?>(value: "")
+    let passwordError = BehaviorSubject<String?>(value: "")
+    private let disponeBag = DisposeBag()
     
     //MARK: -Init
     init(with view: SignInPresenterDelegate) {
         self.view = view
+        
+        emailtextPublisherSubjetc.map{self.validateEmail($0)}.subscribe {[weak self] valiPair in
+            if let validate = valiPair.element {
+                self?.emailError.onNext(validate.1)
+            }
+            
+        }.disposed(by: disponeBag)
+        
+        passwordPublisherSubject.map {self.validatePassword($0)}.subscribe {[weak self] valiPair in
+            if let validate = valiPair.element {
+                self?.passwordError.onNext(validate.1)
+            }
+        }.disposed(by: disponeBag)
+        
     }
 
     //MARK: -Fetch User
@@ -88,17 +111,27 @@ class SignInPresenter {
         view?.didValidateSocialMediaAccount(currentUser, bool: isvalid)
     }
     
-    func validateEmailPassword(_ email: String, _ password: String, completion: (_ currentUser: User?, Bool) -> Void) {
-        var currentUser: User?
-        var isvalid: Bool = false
-        users.forEach { user in
-            if user.email == email && user.password == password {
-                currentUser = user
-                isvalid = true
+    func validateEmail(_ email: String) -> (Bool, String?) {
+        if users.contains(where: {$0.email == email}) {
+            users.forEach { user in
+                if user.email == email {
+                    self.currentUser = user
+                }
             }
+            return (true, nil)
+        } else {
+            return (false, "Wrong Email")
         }
-        completion(currentUser, isvalid)
     }
+    
+    func validatePassword(_ password: String) -> (Bool, String?) {
+        if users.contains(where: {$0.password == password}) {
+            return (true, nil)
+        }else  {
+            return (false, "Wrong Password" )
+        }
+    }
+    
     
     //MARK: Change State User
     func changeStateUser(_ currentUser: User) {
@@ -111,8 +144,8 @@ class SignInPresenter {
     }
     
     func showUserInfo() -> (email: String, password: String )  {
-        var email: String = ""
-        var password: String = ""
+        let email: String = ""
+        let password: String = ""
 //        let info = DataManager.shareInstance.getUser()
 //        _ = info.map { item in
 //            email = item.email

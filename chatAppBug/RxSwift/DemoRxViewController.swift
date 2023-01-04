@@ -110,5 +110,9 @@ final class DemoRxViewController: UIViewController {
 
 
 extension DemoRxViewController: RxPresenterDelegate {
+    func didValidateEmail(_ bool: Bool, result: String) {
+        print("asd")
+    }
+    
         
 }

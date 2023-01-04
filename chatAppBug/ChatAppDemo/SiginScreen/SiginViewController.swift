@@ -8,6 +8,9 @@
 import UIKit
 import FacebookLogin
 import FBSDKLoginKit
+import RxSwift
+import RxCocoa
+
 
 class SiginViewController: UIViewController {
     @IBOutlet private weak var tfEmail: CustomTextField!
@@ -16,13 +19,16 @@ class SiginViewController: UIViewController {
     @IBOutlet private weak var btSigin: UIButton!
     @IBOutlet private weak var btSignup: CustomButton!
     @IBOutlet private weak var btLoginFaceBook: FBLoginButton!
+    @IBOutlet private weak var lbEmailError: UILabel!
+    @IBOutlet private weak var lbPasswordError: UILabel!
     
 
     lazy private var presenter = SignInPresenter(with: self)
-    
+    private var disponeBag = DisposeBag()
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        onBind()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -49,9 +55,27 @@ class SiginViewController: UIViewController {
         setupButtonLoginFaceBook()
     }
     
+    private func onBind() {
+       // presenter.emailError.bind(to: lbEmailError.rx.text).disposed(by: disponeBag)
+    }
+    
     private func setupUITextField() {
-        tfEmail.text = "long@gmail.com"
-        tfPassword.text = "123456"
+        lbEmailError.isHidden = true
+        lbPasswordError.isHidden = true
+        
+        tfEmail.rx.controlEvent(.editingChanged).map {[weak self]textField in
+            return self?.tfEmail.text
+        }.subscribe(onNext: {[weak self]text in
+            self?.presenter.emailtextPublisherSubjetc.onNext(text ?? "")
+        }).disposed(by: disponeBag)
+        
+
+        tfPassword.rx.controlEvent(.editingChanged).map {[weak self]textField in
+            return self?.tfPassword.text
+        }.subscribe(onNext: {[weak self]text in
+            self?.presenter.passwordPublisherSubject.onNext(text ?? "")
+        }).disposed(by: disponeBag)
+    
 }
     private func setupButtonLoginFaceBook() {
         btLoginFaceBook.setTitle("", for: .normal)
@@ -86,17 +110,24 @@ class SiginViewController: UIViewController {
     }
 }
     @objc private func didTapSigin(_ sender: UIButton) {
-        presenter.validateEmailPassword(tfEmail.text!, tfPassword.text!) { currentUser, bool in
-            if bool {
-                guard let currentUser = currentUser else { return }
-                let vc = ListUserViewController.instance(currentUser)
-                presenter.changeStateUser(currentUser)
-                navigationController?.pushViewController(vc, animated: true)
+        presenter.emailError.bind(to: lbEmailError.rx.text).disposed(by: disponeBag)
+        lbEmailError.isHidden = false
+        
+        presenter.passwordError.bind(to: lbPasswordError.rx.text).disposed(by: disponeBag)
+        lbPasswordError.isHidden = false
+        
+        Observable.combineLatest(presenter.emailError.map {$0 == nil},
+                                 presenter.passwordError.map {$0 == nil})
+        .map{$0.0 && $0.1}.subscribe { bool in
+           if bool {
+               if  let currentUser = self.presenter.currentUser  {
+                   let vc = ListUserViewController.instance(currentUser)
+                   self.presenter.changeStateUser(currentUser)
+                   self.navigationController?.pushViewController(vc, animated: true)
+               }
+               print("asd")
             }
-            else {
-                return
-            }
-        }
+        }.disposed(by: disponeBag)
 
     }
    

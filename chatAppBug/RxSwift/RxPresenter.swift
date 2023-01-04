@@ -35,21 +35,19 @@ class RxPresenter {
         
     }
     
-    
-    
     func fecthDataFromFirebase() -> Observable<[User]> {
         return Observable.create { observable in
             self.db.collection("user").addSnapshotListener{(snapShot, error) in
                 if error != nil {return}
                 guard let data = snapShot?.documents else {return}
                 let user = data.map({User(dict: $0.data())})
-                //print(user)
                 observable.onNext(user)
                 observable.onCompleted()
             }
             return Disposables.create()
         }
     }
+    
     func validateEmail(_ email: String)  -> (Bool, String){
         if email.isEmpty {
             return (false, "Email can not empty")
