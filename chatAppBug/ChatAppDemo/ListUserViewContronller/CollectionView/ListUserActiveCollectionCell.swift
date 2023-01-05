@@ -19,22 +19,8 @@ class ListUserActiveCollectionCell: UICollectionViewCell {
         img.contentMode = .scaleToFill
     }
     
-    func updateUI(_ user: User?, text: String, currentuser: User?) {
+    func updateUI(_ user: User?, text: String) {
         guard let user = user else {return}
-       // guard let currentUser = currentuser else {return}
-        
-//        if user.id == currentUser.id {
-//            imgState.isHidden = true
-//            img.layer.cornerRadius = 0
-//            img.layer.masksToBounds = true
-//            img.image = UIImage(systemName: "person.crop.circle.fill.badge.plus")
-//            img.tintColor = .systemGray
-//            img.contentMode = .scaleAspectFit
-//            lbName.text = "Create status"
-//            return
-//        } else {
-//
-//        }
         ImageService.share.fetchImage(with: user.picture) {[weak self] image in
             DispatchQueue.main.async {
                 self?.img.image = image

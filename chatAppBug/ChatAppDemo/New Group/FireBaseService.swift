@@ -66,10 +66,8 @@ class FirebaseService {
         let data: [String: Any] = [
                 "nameSender": senderUser.name,
                 "avataSender":senderUser.picture,
-                "senderID":senderUser.id,
                 "receivername": receiverUser.name,
                 "avatarReciverUser": receiverUser.picture,
-                "reciverId":receiverUser.id,
                 "text": message,
                 "image": imgUrl,
                 "sendId": senderUser.id,

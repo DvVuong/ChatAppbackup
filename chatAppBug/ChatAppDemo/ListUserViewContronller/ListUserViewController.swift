@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
+
 
 final class ListUserViewController: UIViewController {
     static func instance(_ currentUser: User) -> ListUserViewController {
@@ -13,9 +16,6 @@ final class ListUserViewController: UIViewController {
         vc.presenter = ListUserPresenter(with: vc, data: currentUser)
         return vc
     }
-    
-    private var presenter: ListUserPresenter!
-    lazy private var presenterCell = ListCellPresenter()
     
     @IBOutlet private weak var messageTable: UITableView!
     @IBOutlet private weak var searchUser: UITextField!
@@ -32,10 +32,17 @@ final class ListUserViewController: UIViewController {
     @IBOutlet private weak var heightSearchUserContrains: NSLayoutConstraint!
     @IBOutlet private weak var trailingSearchUserContrains: NSLayoutConstraint!
     
+    
+    private var presenter: ListUserPresenter!
+    private var disponeBag = DisposeBag()
+    lazy private var presenterCell = ListCellPresenter()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupData()
+        presenter.fetchUserRxSwift()
+        presenter.fectchMessageRxSwift()
         
     }
     
@@ -55,19 +62,57 @@ final class ListUserViewController: UIViewController {
         setupBtSetting()
         setupLbNameUser()
         setuplbNewMessageNotification()
-        setupListUserCollectionTable()
         setupListUserTableView()
         setupBtCacncelSearchUser()
+        onBind()
+    }
+    
+    private func onBind() {
+        setupCollectionViewRxSwift()
+       
+    }
+    
+    private func setupCollectionViewRxSwift() {
+        guard let currentUser = presenter.currentUser else {return}
+        presenter.activeUsers.bind(to: self.listUserActive.rx
+            .items(cellIdentifier: "listActiveUserCell"
+                   ,cellType: ListUserActiveCollectionCell.self)) { index, data, cell in
+            cell.updateUI(data, text: self.searchUser.text ?? "")
+            
+        }.disposed(by: disponeBag)
+        
+         //MARK: Seclected Items
+        self.listUserActive.rx.modelSelected(User.self).bind { user in
+           
+            let vc = DetailViewViewController.instance(user, currentUser: currentUser)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }.disposed(by: self.disponeBag)
+        
+        
     }
     
     private func setupListUserTableView() {
         listAllUser.isHidden = true
-        listAllUser.delegate = self
-        listAllUser.dataSource = self
+        //MARK: ListAllUser UITabeView
+        presenter.allOtherUser.bind(to: self.listAllUser.rx.items(cellIdentifier: "listUsertableCell", cellType: ListAllUserTableCell.self)) { index, data, cell in
+            cell.updateUI(data)
+        }.disposed(by: disponeBag)
+
+        listAllUser.rx.modelSelected(User.self).subscribe { user in
+            //guard let message = presenter.cellForMessage(indexPath.row) else {return}
+        }.disposed(by: disponeBag)
+        
+        listAllUser.rx.setDelegate(self).disposed(by: disponeBag)
+        
+        //MARK: MessageTableView
+        presenter.messageBehaviorSubject.bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
+            //cell.updateUI(<#T##currentUser: User?##User?#>, message: data, reciverUser: <#T##User?#>)
+        }.disposed(by: disponeBag)
+        
+        messageTable.rx.setDelegate(self).disposed(by: disponeBag)
     }
     
     private func setupData() {
-        presenter.fetchUser()
         presenter.getImageForCurrentUser()
     }
     
@@ -77,15 +122,7 @@ final class ListUserViewController: UIViewController {
     }
     
     private func setupMessagetable() {
-        messageTable.delegate = self
-        messageTable.dataSource = self
         messageTable.separatorStyle = .none
-    }
-    
-    private func setupListUserCollectionTable() {
-        listUserActive.delegate = self
-        listUserActive.dataSource = self
-        
     }
     
     private func setupSearchUser() {
@@ -94,7 +131,13 @@ final class ListUserViewController: UIViewController {
         searchUser.layer.borderWidth = 1
         searchUser.layer.borderColor = UIColor.black.cgColor
         searchUser.delegate = self
-        searchUser.addTarget(self, action: #selector(handelTextField(_:)), for: .editingChanged)
+        //searchUser.addTarget(self, action: #selector(handelTextField(_:)), for: .editingChanged)
+        
+        searchUser.rx.controlEvent(.editingChanged).map {[weak self] textField in
+            return self?.searchUser.text
+        }.subscribe(onNext: {[weak self]text in
+            self?.presenter.searchUserPublisher.onNext(text ?? "")
+        }).disposed(by: disponeBag)
         
     }
     
@@ -122,7 +165,7 @@ final class ListUserViewController: UIViewController {
     //MARK: -ACtion
    
     @objc private func handelTextField(_ textfield: UITextField)  {
-        presenter.searchUser(textfield.text!)
+        //presenter.searchUser(textfield.text!)
     }
     
     @objc private func didTapSetting(_ sender: Any) {
@@ -160,10 +203,10 @@ extension ListUserViewController: UITableViewDelegate, UITableViewDataSource {
             return presenter.getNumberOfMessage()
         }
         
-        else{
-            return presenter.getNumberOfUser()
-        }
-        
+//        else{
+//            return presenter.getNumberOfUser()
+//        }
+        return 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -178,7 +221,7 @@ extension ListUserViewController: UITableViewDelegate, UITableViewDataSource {
         
         else if tableView === listAllUser {
             let cell = listAllUser.dequeueReusableCell(withIdentifier: "listUsertableCell", for: indexPath) as! ListAllUserTableCell
-            cell.updateUI(presenter.getCellForUsers(at: indexPath.row))
+            //cell.updateUI(presenter.getCellForUsers(at: indexPath.row))
             
             return cell
         }
@@ -218,69 +261,28 @@ extension ListUserViewController: UITableViewDelegate, UITableViewDataSource {
             }
         }
         else if tableView === listAllUser {
-            guard let user = presenter.getcurrentUser() else { return }
-            guard let reciver = presenter.getCellForUsers(at: indexPath.row) else {return}
-            let vc = DetailViewViewController.instance(reciver, currentUser: user)
-            navigationController?.pushViewController(vc, animated: true)
+//            guard let user = presenter.getcurrentUser() else { return }
+//            guard let reciver = presenter.getCellForUsers(at: indexPath.row) else {return}
+//            let vc = DetailViewViewController.instance(reciver, currentUser: user)
+//            navigationController?.pushViewController(vc, animated: true)
         }
         
                
     }
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let delete = UIContextualAction(style: .normal, title: "Delete") { action, _, _ in
-            self.presenter.deleteUser(indexPath.row) { [weak self] in
-                self?.messageTable.reloadData()
-            }
-        }
-        delete.image = UIImage(systemName: "trash.fill")
-        delete.backgroundColor = .red
-        let swipe = UISwipeActionsConfiguration(actions: [delete])
-        return swipe
-    }
-}
-// MARK: CollectionView
-
-extension ListUserViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
-   
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-
-        return presenter.getNumberOfActiveUser()
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-
-            let currentUser = presenter.getcurrentUser()
-            let cell = listUserActive.dequeueReusableCell(withReuseIdentifier: "listActiveUserCell", for: indexPath) as! ListUserActiveCollectionCell
-            cell.updateUI(presenter.getIndexOfActiveUser(indexPath.item), text: searchUser.text ?? "", currentuser: currentUser)
-            return cell
-     
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        if indexPath.item == 0 {
-//            let user = presenter.getcurrentUser()
-//            let vc = CreateStatusViewController.instance(user)
-//            present(vc, animated: true)
-//            return
+//    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+//        let delete = UIContextualAction(style: .normal, title: "Delete") { action, _, _ in
+//            self.presenter.deleteUser(indexPath.row) { [weak self] in
+//                self?.messageTable.reloadData()
+//            }
 //        }
-//        else {
-            guard let user = presenter.getIndexOfActiveUser(indexPath.item) else {return}
-            guard let currentUser = presenter.getcurrentUser() else {return}
-            let vc = DetailViewViewController.instance(user, currentUser: currentUser)
-            navigationController?.pushViewController(vc, animated: true)
-//        }
-       
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 100, height: 100)
-    }
-    
+//        delete.image = UIImage(systemName: "trash.fill")
+//        delete.backgroundColor = .red
+//        let swipe = UISwipeActionsConfiguration(actions: [delete])
+//        return swipe
+//    }
 }
 
-
+//MARK: Extension
 extension ListUserViewController: ListUserPresenterDelegate {
     func didFetchUser() {
         self.listUserActive.reloadData()
@@ -333,5 +335,6 @@ extension ListUserViewController: UITextFieldDelegate {
         return true
     }
 }
+
 
 

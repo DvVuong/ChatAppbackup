@@ -40,7 +40,6 @@ class SignInPresenter {
             if let validate = valiPair.element {
                 self?.emailError.onNext(validate.1)
             }
-            
         }.disposed(by: disponeBag)
         
         passwordPublisherSubject.map {self.validatePassword($0)}.subscribe {[weak self] valiPair in
@@ -111,13 +110,21 @@ class SignInPresenter {
         view?.didValidateSocialMediaAccount(currentUser, bool: isvalid)
     }
     
-    func validateEmail(_ email: String) -> (Bool, String?) {
-        if users.contains(where: {$0.email == email}) {
+    func validateEmailPassword(_ email: String, _ password: String, completion: (_ currentUser: User?, Bool) -> Void) {
+            var currentUser: User?
+            var isvalid: Bool = false
             users.forEach { user in
-                if user.email == email {
-                    self.currentUser = user
+                if user.email == email && user.password == password {
+                    currentUser = user
+                    isvalid = true
                 }
             }
+            completion(currentUser, isvalid)
+        }
+    
+    func validateEmail(_ email: String) -> (Bool, String?) {
+        if let user = users.first(where: { $0.email == email }) {
+            self.currentUser = user
             return (true, nil)
         } else {
             return (false, "Wrong Email")
@@ -125,10 +132,10 @@ class SignInPresenter {
     }
     
     func validatePassword(_ password: String) -> (Bool, String?) {
-        if users.contains(where: {$0.password == password}) {
+        if let user = users.first(where: { $0.password == password }) { self.currentUser = user
             return (true, nil)
-        }else  {
-            return (false, "Wrong Password" )
+        } else {
+            return (false, "Wrong Password")
         }
     }
     

@@ -53,26 +53,39 @@ class SiginViewController: UIViewController {
         setupBtSaveData()
         setupBtSignUp()
         setupButtonLoginFaceBook()
+        //btSigin.isEnabled = false
     }
     
     private func onBind() {
-       // presenter.emailError.bind(to: lbEmailError.rx.text).disposed(by: disponeBag)
-    }
+//        presenter.emailError.bind(to: lbEmailError.rx.text).disposed(by: disponeBag)
+//        lbEmailError.isHidden = false
+//
+//        presenter.passwordError.bind(to: lbPasswordError.rx.text).disposed(by: disponeBag)
+//        lbPasswordError.isHidden = false
+//
+//        Observable.combineLatest(presenter.emailError.map {$0 == nil},
+//                                 presenter.passwordError.map {$0 == nil})
+//        .map{$0.0 && $0.1}.subscribe { bool in
+//            self.btSigin.isEnabled  = bool
+//        }
+//        .disposed(by: disponeBag)
+   }
     
     private func setupUITextField() {
         lbEmailError.isHidden = true
         lbPasswordError.isHidden = true
         
-        tfEmail.rx.controlEvent(.editingChanged).map {[weak self]textField in
+        tfEmail.rx.controlEvent(.editingDidEnd).map {[weak self]textField in
             return self?.tfEmail.text
         }.subscribe(onNext: {[weak self]text in
             self?.presenter.emailtextPublisherSubjetc.onNext(text ?? "")
         }).disposed(by: disponeBag)
         
 
-        tfPassword.rx.controlEvent(.editingChanged).map {[weak self]textField in
+        tfPassword.rx.controlEvent(.editingDidEnd).map {[weak self]textField in
             return self?.tfPassword.text
         }.subscribe(onNext: {[weak self]text in
+           
             self?.presenter.passwordPublisherSubject.onNext(text ?? "")
         }).disposed(by: disponeBag)
     
@@ -110,25 +123,17 @@ class SiginViewController: UIViewController {
     }
 }
     @objc private func didTapSigin(_ sender: UIButton) {
-        presenter.emailError.bind(to: lbEmailError.rx.text).disposed(by: disponeBag)
-        lbEmailError.isHidden = false
-        
-        presenter.passwordError.bind(to: lbPasswordError.rx.text).disposed(by: disponeBag)
-        lbPasswordError.isHidden = false
-        
-        Observable.combineLatest(presenter.emailError.map {$0 == nil},
-                                 presenter.passwordError.map {$0 == nil})
-        .map{$0.0 && $0.1}.subscribe { bool in
-           if bool {
-               if  let currentUser = self.presenter.currentUser  {
-                   let vc = ListUserViewController.instance(currentUser)
-                   self.presenter.changeStateUser(currentUser)
-                   self.navigationController?.pushViewController(vc, animated: true)
+        presenter.validateEmailPassword(tfEmail.text!, tfPassword.text!) { currentUser, bool in
+                   if bool {
+                       guard let currentUser = currentUser else { return }
+                       let vc = ListUserViewController.instance(currentUser)
+                       presenter.changeStateUser(currentUser)
+                       navigationController?.pushViewController(vc, animated: true)
+                   }
+                   else {
+                       return
+                   }
                }
-               print("asd")
-            }
-        }.disposed(by: disponeBag)
-
     }
    
     @objc private func didTapSigup(_ sender: UIButton) {
