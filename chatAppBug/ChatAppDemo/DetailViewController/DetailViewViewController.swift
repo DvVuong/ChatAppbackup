@@ -6,11 +6,13 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 final class DetailViewViewController: UIViewController {
     static func instance(_ data: User, currentUser: User) -> DetailViewViewController {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DetailScreen") as! DetailViewViewController
-        vc.presenter = DetailPresenter(with: vc, data: data, currentUser: currentUser)
+        vc.viewModel = DetailPresenter( data: data, currentUser: currentUser)
         return vc
     }
     
@@ -27,25 +29,20 @@ final class DetailViewViewController: UIViewController {
     @IBOutlet private weak var bottomTfMessageContrains: NSLayoutConstraint!
     @IBOutlet private weak var bottomImageContrains: NSLayoutConstraint!
     @IBOutlet private weak var bottomSenImageContrains: NSLayoutConstraint!
-    
     @IBOutlet weak var bottomTableView: NSLayoutConstraint!
+    
+    private let bag = DisposeBag()
     private var imgPicker = UIImagePickerController()
-    private var presenter: DetailPresenter!
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-        self.presenter.fetchMessage()
-        
-        
-    }
+    private var viewModel: DetailPresenter!
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        self.convertiontable.endEditing(true)
-        view.endEditing(true)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        bindTableView()
+        self.viewModel.fetchMessage()
     }
    
     private func setupUI() {
@@ -56,7 +53,6 @@ final class DetailViewViewController: UIViewController {
         setupGoBackButton()
         showStateReciverUser()
         keyBoardObserver()
-       
     }
     
      private func keyBoardObserver() {
@@ -66,7 +62,7 @@ final class DetailViewViewController: UIViewController {
     }
     
     private func showStateReciverUser() {
-        presenter.fetchStateUser()
+        viewModel.fetchStateUser()
     }
    
     private func setupGoBackButton() {
@@ -75,8 +71,6 @@ final class DetailViewViewController: UIViewController {
     }
     
     private func setupConvertionTable() {
-        convertiontable.delegate = self
-        convertiontable.dataSource = self
         convertiontable.separatorStyle = .none
         convertiontable.contentInset = UIEdgeInsets(top: 5, left: 0, bottom: 5, right: 0)
         let imgCell = UINib(nibName: "ImgCell", bundle: nil)
@@ -85,12 +79,57 @@ final class DetailViewViewController: UIViewController {
         let gesture = UITapGestureRecognizer(target: self, action: #selector(handleViewEndEditing(_:)))
         convertiontable.addGestureRecognizer(gesture)
         
-        
         let messageCell = UINib(nibName: "MessageCell", bundle: nil)
         convertiontable.register(messageCell, forCellReuseIdentifier: "messageCell")
         
         let reciverUser = UINib(nibName: "ReciverUserCell", bundle: nil)
         convertiontable.register(reciverUser, forCellReuseIdentifier: "reciverUser")
+    }
+    
+    private func bindTableView() {
+        //MARK: UItableView
+        let currentUser = viewModel.getCurrentUser()
+       
+        convertiontable.rx.setDelegate(self).disposed(by: bag)
+        viewModel.messageBehaviorSubject.bind(to: self.convertiontable.self.rx.items) { tableview, index, data in
+            self.scrollToBottom()
+            if data.text.isEmpty {
+                let cell = self.convertiontable.dequeueReusableCell(withIdentifier: "imgCell") as! ImgCell
+                cell.updateUI(data, currentUser: currentUser)
+                return cell
+            }
+            
+            if data.sendId == currentUser?.id {
+                let cell = self.convertiontable.dequeueReusableCell(withIdentifier: "messageCell") as! MessageCell
+                cell.updateUI(data)
+                return cell
+            } else {
+                let cell = self.convertiontable.dequeueReusableCell(withIdentifier: "reciverUser") as! ReciverUserCell
+                cell.updateUI(data)
+                return cell
+            }
+           
+        }
+        .disposed(by: bag)
+        
+        //MARK: ShowUser, stateActive
+        viewModel.stateUserPublisher.subscribe {[weak self] users in
+            if let users = users.element {
+                users.forEach { user in
+                    self?.lbNameUser.text  = user.name
+                    self?.lbState.text = user.isActive ? "Active now" : "Not active"
+                    self?.imgStateUser.tintColor = user.isActive ? .systemGreen : .systemGray
+                }
+            }
+        }.disposed(by: bag)
+        
+        viewModel.imageUserPublisher.subscribe {[weak self] image in
+            if let image = image {
+                DispatchQueue.main.async {
+                    self?.imgUser.image = image
+                }
+            }
+        }.disposed(by: bag)
     }
     
     private func setupMessageTextField() {
@@ -114,22 +153,21 @@ final class DetailViewViewController: UIViewController {
     private func sendMessage() {
         guard let message = tvMessage.text else {return}
         if message.isEmpty {
-            presenter.sendLikeSymbols()
+            viewModel.sendLikeSymbols()
             view.endEditing(true)
             return
         }
-        presenter.sendMessage(with: message)
+        viewModel.sendMessage(with: message)
         tvMessage.text = ""
         btSendMessage.setImage(UIImage(systemName: "hand.thumbsup.fill"), for: .normal)
         heightTextViewContrains.constant = 33
         view.layoutIfNeeded()
-        view.endEditing(true)
     }
     
     private func scrollToBottom() {
         DispatchQueue.main.async {
-            if self.presenter.getNumberOfMessage() < 1 { return }
-            let indexPath = IndexPath(row: self.presenter.getNumberOfMessage() - 1, section: 0)
+            if self.viewModel.getNumberOfMessage() < 1 { return }
+            let indexPath = IndexPath(row: self.viewModel.getNumberOfMessage() - 1, section: 0)
             self.convertiontable.scrollToRow(at: indexPath, at: .bottom, animated: true)
         }
     }
@@ -160,56 +198,26 @@ extension DetailViewViewController: UIImagePickerControllerDelegate, UINavigatio
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         guard let image = image else { return }
-        
-        self.presenter.sendImageMessage(with: image)
-        
-        self.imgPicker.dismiss(animated: true)
-    }
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        self.viewModel.sendImageMessage(with: image)
         self.imgPicker.dismiss(animated: true)
     }
     
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        self.imgPicker.dismiss(animated: true)
+    }
 }
 
 
 //MARK: -Extension UitableView
-extension DetailViewViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter.getNumberOfMessage()
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let currentUser = presenter.getCurrentUser()
-        let message = presenter.getCellForMessage(at: indexPath.row)
-        
-        if message.text.isEmpty {
-            let cell = convertiontable.dequeueReusableCell(withIdentifier: "imgCell", for: indexPath) as! ImgCell
-            let message = presenter.getCellForMessage(at: indexPath.row)
-            cell.updateUI(message, currentUser: currentUser)
-            return cell
-        }
-        
-        if message.sendId == currentUser?.id {
-            let cell = convertiontable.dequeueReusableCell(withIdentifier: "messageCell") as! MessageCell
-            cell.updateUI(message)
-            return cell
-        } else {
-            let cell = convertiontable.dequeueReusableCell(withIdentifier: "reciverUser") as! ReciverUserCell
-            cell.updateUI(message)
-            return cell
-        }
-    }
-    
+extension DetailViewViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let message = presenter.getCellForMessage(at: indexPath.row)
+        let message = viewModel.getMessage(indexPath.row)
         if message.text.isEmpty {
             return 280 / (message.ratioImage)
         } else {
             return UITableView.automaticDimension
         }
     }
-    
 }
 
 //MARK: Extension UItextFiled
@@ -219,30 +227,8 @@ extension DetailViewViewController: UITextFieldDelegate {
         return true
     }
     
-    
     func textFieldDidEndEditing(_ textField: UITextField) {
         btSendMessage.setImage(UIImage(systemName: "hand.thumbsup.fill"), for: .normal)
-    }
-}
-
-extension DetailViewViewController: DetailPresenterViewDelegate {
-    func didFetchStateUser(_ user: [User]?, image: UIImage?) {
-        guard let image = image else {return}
-        imgStateUser.tintColor = .systemGray
-        guard let user = user else {return}
-        user.forEach { user in
-            lbNameUser.text = user.name
-            DispatchQueue.main.async {
-                self.imgUser.image = image
-            }
-            self.lbState.text = user.isActive ? "Active Now" : "Not active"
-            self.imgStateUser.tintColor = user.isActive ? .green : .systemGray
-        }
-    }
-    
-    func showMessage() {
-        self.convertiontable.reloadData()
-        self.scrollToBottom()
     }
 }
 
@@ -256,7 +242,6 @@ extension DetailViewViewController {
         self.view.layoutIfNeeded()
     }
     
-    
     @objc func keyboardWillHide(_ sender: NSNotification) {
         self.bottomTfMessageContrains.constant = 20
         self.bottomImageContrains.constant = 20
@@ -267,12 +252,9 @@ extension DetailViewViewController {
 }
 
 extension DetailViewViewController: UITextViewDelegate {
-    
     func textViewDidChange(_ textView: UITextView) {
         let size = CGSize(width: view.frame.width, height: .infinity)
-
         let esimatedSize = textView.sizeThatFits(size)
-
         guard let message = tvMessage.text else {return }
         if tvMessage.contentSize.height < 120 {
             heightTextViewContrains.constant = esimatedSize.height
